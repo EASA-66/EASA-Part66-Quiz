@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 9 — Human Factors Check Ride</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12161a;
+    --bg-panel: #1b2128;
+    --bg-panel-raised: #212832;
+    --line: #323b46;
+    --line-bright: #495364;
+    --paper: #eae6da;
+    --paper-dim: #9aa3ad;
+    --amber: #f2a93b;
+    --amber-dim: #a97a2e;
+    --green: #57b981;
+    --green-dim: #2c4a3a;
+    --red: #e2543b;
+    --red-dim: #4a2c26;
+    --blue: #5b8bb0;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at top left, #1a2027 0%, var(--bg) 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    color: var(--paper);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 28px 16px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{ max-width: 760px; margin: 0 auto; }
+
+  /* ---- Header / placard ---- */
+  .placard{
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel));
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .placard::before{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(135deg, rgba(242,169,59,0.035) 0px, rgba(242,169,59,0.035) 2px, transparent 2px, transparent 14px);
+    pointer-events:none;
+  }
+  .rivet{
+    position:absolute; width:6px; height:6px; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, #565f6b, #1a1f26);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .rivet.tl{top:8px;left:8px;} .rivet.tr{top:8px;right:8px;}
+  .rivet.bl{bottom:8px;left:8px;} .rivet.br{bottom:8px;right:8px;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    display:flex; align-items:center; gap:8px;
+    margin-bottom:6px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+  h1{
+    font-family:'IBM Plex Sans Condensed', sans-serif;
+    font-weight:700;
+    font-size: 26px;
+    letter-spacing: 0.01em;
+    margin: 0 0 4px;
+    color: var(--paper);
+  }
+  .sub{ color: var(--paper-dim); font-size: 13.5px; line-height:1.5; }
+  .module-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--paper-dim); letter-spacing:0.06em;
+    border-top: 1px dashed var(--line-bright);
+    margin-top:12px; padding-top:10px;
+  }
+
+  /* ---- Panel (shared card) ---- */
+  .panel{
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-panel);
+    padding: 22px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  /* ---- Setup screen ---- */
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing:0.12em; text-transform:uppercase;
+    color: var(--paper-dim); margin-bottom: 12px; display:block;
+  }
+  .chip-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 22px; }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    padding: 8px 12px;
+    border: 1px solid var(--line-bright);
+    border-radius: var(--radius);
+    background: var(--bg-panel-raised);
+    color: var(--paper-dim);
+    cursor: pointer;
+    user-select: none;
+    transition: all .12s ease;
+    display:flex; align-items:center; gap:8px;
+  }
+  .chip .count{ color: var(--paper-dim); opacity:0.6; font-size:11px; }
+  .chip.active{
+    border-color: var(--amber);
+    color: var(--paper);
+    background: linear-gradient(180deg, rgba(242,169,59,0.14), rgba(242,169,59,0.05));
+  }
+  .chip.active .count{ color: var(--amber); opacity:1; }
+  .chip:hover{ border-color: var(--amber-dim); }
+
+  .count-row{ display:flex; align-items:center; gap:14px; margin-bottom: 22px; }
+  .stepper{ display:flex; align-items:center; gap:0; border:1px solid var(--line-bright); border-radius:var(--radius); overflow:hidden; }
+  .stepper button{
+    background: var(--bg-panel-raised); color:var(--paper); border:none;
+    font-family:'IBM Plex Mono', monospace; font-size:16px; width:36px; height:36px; cursor:pointer;
+  }
+  .stepper button:hover{ background: rgba(242,169,59,0.15); color:var(--amber); }
+  .stepper .val{
+    width:56px; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:600;
+    border-left:1px solid var(--line-bright); border-right:1px solid var(--line-bright);
+    line-height:36px; background: var(--bg);
+  }
+  .avail{ font-size:12px; color:var(--paper-dim); font-family:'IBM Plex Mono', monospace; }
+
+  .start-btn{
+    width:100%;
+    background: linear-gradient(180deg, #ffbf5c, var(--amber));
+    color: #201404;
+    border: none;
+    border-radius: var(--radius);
+    padding: 15px 20px;
+    font-family:'IBM Plex Sans Condensed', sans-serif;
+    font-weight:700;
+    font-size: 15.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--amber-dim), 0 6px 16px rgba(242,169,59,0.18);
+    transition: transform .08s ease;
+  }
+  .start-btn:active{ transform: translateY(2px); box-shadow:0 0 0 var(--amber-dim); }
+  .start-btn:disabled{ opacity:0.4; cursor:not-allowed; box-shadow:none; }
+
+  /* ---- Quiz screen ---- */
+  .gauge-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:16px; }
+  .progress-track{
+    flex:1; height:8px; border-radius:4px; background: var(--bg); border:1px solid var(--line);
+    overflow:hidden; position:relative;
+  }
+  .progress-fill{
+    height:100%;
+    background: repeating-linear-gradient(90deg, var(--amber), var(--amber) 8px, #d99530 8px, #d99530 10px);
+    transition: width .3s ease;
+  }
+  .qcount{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--paper-dim); white-space:nowrap; }
+  .score-badge{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--green);
+    border:1px solid var(--green-dim); background:rgba(87,185,129,0.08);
+    padding:4px 10px; border-radius:var(--radius); white-space:nowrap;
+  }
+
+  .q-meta{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color: var(--blue); margin-bottom:10px;
+  }
+  .q-text{
+    font-size: 18px; line-height:1.45; margin: 0 0 20px; color:var(--paper); font-weight:500;
+  }
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .option{
+    display:flex; align-items:flex-start; gap:12px;
+    border:1px solid var(--line-bright);
+    border-radius: var(--radius);
+    background: var(--bg-panel-raised);
+    padding: 13px 14px;
+    cursor:pointer;
+    text-align:left;
+    font-size:14.5px;
+    color: var(--paper);
+    transition: all .1s ease;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .option:hover:not(.locked){ border-color: var(--amber-dim); background: rgba(242,169,59,0.06); }
+  .option .letter{
+    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:13px;
+    width:22px; height:22px; border-radius:50%; border:1px solid var(--line-bright);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    color: var(--paper-dim);
+  }
+  .option.correct{ border-color: var(--green); background: rgba(87,185,129,0.1); }
+  .option.correct .letter{ border-color: var(--green); color:var(--green); background:rgba(87,185,129,0.15); }
+  .option.wrong{ border-color: var(--red); background: rgba(226,84,59,0.1); }
+  .option.wrong .letter{ border-color: var(--red); color:var(--red); background:rgba(226,84,59,0.15); }
+  .option.locked{ cursor:default; }
+  .option.dim{ opacity:0.5; }
+
+  .feedback{
+    margin-top:16px; padding: 12px 14px; border-radius:var(--radius);
+    font-size:13.5px; line-height:1.5; display:none; font-family:'IBM Plex Sans',sans-serif;
+    border:1px dashed var(--line-bright);
+  }
+  .feedback.show{ display:block; }
+  .feedback.right{ color: var(--green); border-color: var(--green-dim); background:rgba(87,185,129,0.06);}
+  .feedback.miss{ color: var(--red); border-color: var(--red-dim); background:rgba(226,84,59,0.06);}
+
+  .next-btn{
+    margin-top:16px; width:100%;
+    background: var(--bg-panel-raised); color:var(--paper);
+    border:1px solid var(--line-bright); border-radius:var(--radius);
+    padding:13px; font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700;
+    font-size:14px; text-transform:uppercase; letter-spacing:0.05em;
+    cursor:pointer; display:none;
+  }
+  .next-btn.show{ display:block; }
+  .next-btn:hover{ border-color:var(--amber); color:var(--amber); }
+
+  /* ---- Results ---- */
+  .dial-wrap{ display:flex; justify-content:center; margin: 6px 0 22px; }
+  .dial{ position:relative; width:190px; height:190px; }
+  .dial svg{ transform: rotate(-90deg); }
+  .dial-center{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .dial-pct{ font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700; font-size:40px; color:var(--paper); }
+  .dial-label{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--paper-dim); margin-top:2px;}
+  .verdict{ text-align:center; font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700; font-size:17px; margin-bottom:4px;}
+  .verdict-sub{ text-align:center; color:var(--paper-dim); font-size:13px; margin-bottom:22px; }
+
+  .breakdown{ display:flex; flex-direction:column; gap:8px; margin-bottom:22px; }
+  .bd-row{ display:flex; align-items:center; gap:10px; font-size:12.5px; }
+  .bd-name{ width:180px; flex-shrink:0; color:var(--paper-dim); font-family:'IBM Plex Mono',monospace; }
+  .bd-track{ flex:1; height:6px; background:var(--bg); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+  .bd-fill{ height:100%; background:var(--amber); }
+  .bd-fill.perfect{ background:var(--green); }
+  .bd-num{ width:44px; text-align:right; color:var(--paper-dim); font-family:'IBM Plex Mono',monospace; flex-shrink:0; }
+
+  .review-item{
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--bg-panel-raised);
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .review-q{ font-size:14px; margin-bottom:8px; color:var(--paper); }
+  .review-line{ font-size:12.5px; font-family:'IBM Plex Mono', monospace; margin:3px 0; }
+  .review-line.wrong{ color:var(--red); }
+  .review-line.right{ color:var(--green); }
+  .review-tag{ font-size:10.5px; color:var(--paper-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; font-family:'IBM Plex Mono',monospace;}
+
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .start-btn{ flex:1; }
+  .btn-secondary{
+    flex:1; background:var(--bg-panel-raised); color:var(--paper); border:1px solid var(--line-bright);
+    border-radius:var(--radius); font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700;
+    font-size:14px; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer; padding:15px 20px;
+  }
+  .btn-secondary:hover{ border-color:var(--amber); color:var(--amber); }
+
+  .hidden{ display:none !important; }
+
+  @media (max-width:480px){
+    .q-text{ font-size:16px; }
+    .bd-name{ width:120px; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="placard">
+    <div class="rivet tl"></div><div class="rivet tr"></div><div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="eyebrow"><span class="dot"></span>PART-66 CAT A / B1 — MODULE 9</div>
+    <h1>Human Factors Check Ride</h1>
+    <div class="sub">253 questions drawn from your CAP 715 / CAP 716 / AWN 47 question bank, sectioned exactly as filed in the module.</div>
+    <div class="module-tag" id="statusLine">STANDBY — SELECT SECTIONS TO ARM QUIZ</div>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div class="panel" id="setupScreen">
+    <span class="section-label">Sections</span>
+    <div class="chip-grid" id="chipGrid"></div>
+
+    <span class="section-label">Question count</span>
+    <div class="count-row">
+      <div class="stepper">
+        <button id="decBtn">−</button>
+        <div class="val" id="countVal">20</div>
+        <button id="incBtn">+</button>
+      </div>
+      <span class="avail" id="availLabel"></span>
+    </div>
+
+    <button class="start-btn" id="startBtn">Begin Quiz</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="panel hidden" id="quizScreen">
+    <div class="gauge-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <span class="qcount" id="qCounter">Q1/20</span>
+      <span class="score-badge" id="scoreBadge">0 correct</span>
+    </div>
+    <div class="q-meta" id="qMeta">SECTION</div>
+    <p class="q-text" id="qText">Question text</p>
+    <div class="options" id="optionsWrap"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Next Question →</button>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="panel hidden" id="resultsScreen">
+    <div class="dial-wrap">
+      <div class="dial">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <circle cx="95" cy="95" r="82" fill="none" stroke="#323b46" stroke-width="12"/>
+          <circle id="dialArc" cx="95" cy="95" r="82" fill="none" stroke="#f2a93b" stroke-width="12"
+                   stroke-linecap="round" stroke-dasharray="515" stroke-dashoffset="515"/>
+        </svg>
+        <div class="dial-center">
+          <div class="dial-pct" id="dialPct">0%</div>
+          <div class="dial-label">Score</div>
+        </div>
+      </div>
+    </div>
+    <div class="verdict" id="verdict">—</div>
+    <div class="verdict-sub" id="verdictSub">—</div>
+
+    <span class="section-label">Breakdown by section</span>
+    <div class="breakdown" id="breakdownWrap"></div>
+
+    <div id="reviewWrap"></div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="retrySameBtn">Retry Missed</button>
+      <button class="start-btn" id="restartBtn">New Quiz</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = [{"section":"General","qnum":"1","q":"Accidents and engineering faults are","options":{"A":"insignificant and decreasing","B":"significant and increasing","C":"insignificant and increasing"},"answer_text":"significant and increasing","correct":"B"},{"section":"General","qnum":"2","q":"Murphy's law is perpetuated mainly by","options":{"A":"violations","B":"poor aircraft design","C":"complacency"},"answer_text":"complacency","correct":"C"},{"section":"General","qnum":"3","q":"Murphy's law can be regarded as the notion","options":{"A":"If something can go wrong it will'","B":"It can never happen to me'","C":"If something goes wrong I am certain to get the blame'"},"answer_text":"If something can go wrong it will'","correct":"A"},{"section":"General","qnum":"4","q":"A company's safety policy should be defined in","options":{"A":"in CAP 716","B":"the Maintenance Schedule","C":"the Maintenance Organization Exposition"},"answer_text":"the Maintenance Organization Exposition","correct":"C"},{"section":"General","qnum":"5","q":"Which of the following is least associated with the study of human factors?","options":{"A":"Ergonomics","B":"Health and Safety","C":"Human error"},"answer_text":"Health and Safety","correct":"B"},{"section":"General","qnum":"6","q":"The incident where a 737 lost oil from both engines is a direct result of","options":{"A":"poor design","B":"human error","C":"engine vibration"},"answer_text":"human error","correct":"B"},{"section":"General","qnum":"7","q":"If a 737 had both engines serviced and lost oil from both engines in flight. This","options":{"A":"can be expected to happen statistically due to the number of aircraft in service","B":"would be a direct result of human error","C":"can be considered an acceptable probability"},"answer_text":"would be a direct result of human error","correct":"B"},{"section":"General","qnum":"8","q":"What do you do when someone is hypothermic?","options":{"A":"Warm them up","B":"Feed them sweet things because of their diabetes","C":"Give them a drink because of dehydration"},"answer_text":"Warm them up","correct":"A"},{"section":"General","qnum":"9","q":"The percentage of accidents attributable to aircraft maintenance and inspection causes is","options":{"A":"now less significant due to the introduction of more sophisticated aircraft","B":"significant and rising","C":"now less significant due to more advanced maintenance practices"},"answer_text":"significant and rising","correct":"B"},{"section":"General","qnum":"10","q":"What happened to contribute towards the incident in 1995 where a Boeing 737 lost oil pressure and had to divert?","options":{"A":"Both warning indications were faulty, due to crossed connections","B":"The HP rotor drive covers of both engines had not been refitted after a boroscope inspection","C":"The boroscope inspection had been inadequate"},"answer_text":"The HP rotor drive covers of both engines had not been refitted after a boroscope inspection","correct":"B"},{"section":"General","qnum":"11","q":"What is the most common cause of in-flight engine shutdown?","options":{"A":"Incomplete installation","B":"Improper fault isolation, inspection or test","C":"Foreign object damage"},"answer_text":"Incomplete installation","correct":"A"},{"section":"General","qnum":"12","q":"Most engineering related incidents are due to","options":{"A":"installing dirty connectors","B":"installing components incorrectly","C":"installing worn or old components"},"answer_text":"installing components incorrectly","correct":"B"},{"section":"General","qnum":"13","q":"What causes the most aircraft accidents?","options":{"A":"Technical faults","B":"Communication","C":"Misunderstanding between ATC and pilot on approach"},"answer_text":"Communication","correct":"B"},{"section":"Performance & Limitations","qnum":"1","q":"70 - 80% of the total focusing ability of the eye is carried out by the","options":{"A":"iris","B":"cornea","C":"lens"},"answer_text":"cornea","correct":"B"},{"section":"Performance & Limitations","qnum":"2","q":"At what distance should a person without hearing difficulties be able to hear an average conversational voice in a quiet room","options":{"A":"2 metres (6 feet)","B":"3 metres (9 feet","C":"1 metre (3 feet)"},"answer_text":"2 metres (6 feet)","correct":"A"},{"section":"Performance & Limitations","qnum":"3","q":"A perforated ear drum could occur if","options":{"A":"you were subjected to intermittent noise above 25 kHz","B":"you blew your nose excessively","C":"you were subjected to continuous noise below 8 kHz"},"answer_text":"you were subjected to continuous noise below 8 kHz","correct":"C"},{"section":"Performance & Limitations","qnum":"4","q":"How long is the short term memory good for remembering 7 items?","options":{"A":"30 to 60 seconds","B":"Up to 30 seconds","C":"Above 60 seconds"},"answer_text":"Up to 30 seconds","correct":"B"},{"section":"Performance & Limitations","qnum":"5","q":"What is white finger?","options":{"A":"A disorder of the finger which may occur through continuous use of pneumatic tools because of reduced blood flow","B":"A reaction when the white blood cells die and contaminate the fingers","C":"A skin disorder caused by extensive contact with oils and solvents"},"answer_text":"A disorder of the finger which may occur through continuous use of pneumatic tools because of reduced blood flow","correct":"A"},{"section":"Performance & Limitations","qnum":"6","q":"When someone is working in an enclosed space (such a fuel tank), another person should be outside the space in constant communication to","options":{"A":"provide instructions to the tradesman","B":"ensure compliance with the maintenance manual","C":"for safety reasons"},"answer_text":"for safety reasons","correct":"C"},{"section":"Performance & Limitations","qnum":"7","q":"The scientific study of measurements of the human body is known as","options":{"A":"ergonomics","B":"physiology","C":"anthropometrics"},"answer_text":"anthropometrics","correct":"C"},{"section":"Performance & Limitations","qnum":"8","q":"How long can the aural reflex protect the ear from loud noise?","options":{"A":"5 seconds","B":"15 seconds","C":"15 minutes"},"answer_text":"15 minutes","correct":"C"},{"section":"Performance & Limitations","qnum":"9","q":"What part of the eye controls the amount of light that is allowed to enter the eye?","options":{"A":"The pupil","B":"The iris","C":"The cornea"},"answer_text":"The iris","correct":"B"},{"section":"Performance & Limitations","qnum":"10","q":"Learning of a routine by repeated practice is known as","options":{"A":"cognitive learning","B":"motor programming","C":"episodic memory"},"answer_text":"motor programming","correct":"B"},{"section":"Performance & Limitations","qnum":"11","q":"The ear is used to detect","options":{"A":"speed","B":"neither acceleration or speed","C":"acceleration"},"answer_text":"acceleration","correct":"C"},{"section":"Performance & Limitations","qnum":"12","q":"Light enters the eye through the","options":{"A":"cornea","B":"visual cortex","C":"retina"},"answer_text":"cornea","correct":"A"},{"section":"Performance & Limitations","qnum":"13","q":"To focus on a near object, the lens of the eye must","options":{"A":"be widened","B":"be flattened","C":"be thickened"},"answer_text":"be thickened","correct":"C"},{"section":"Performance & Limitations","qnum":"14","q":"Which type of memory is most susceptible to interference from external influences?","options":{"A":"Long term","B":"Ultra short term","C":"Short term"},"answer_text":"Short term","correct":"C"},{"section":"Performance & Limitations","qnum":"15","q":"Peripheral vision is detected by the","options":{"A":"cones","B":"fovea","C":"rods"},"answer_text":"rods","correct":"C"},{"section":"Performance & Limitations","qnum":"16","q":"Extreme discomfort experienced by a maintenance engineer due to working in a confined space is known as","options":{"A":"claustrophobia","B":"acrophobia","C":"agoraphobia"},"answer_text":"claustrophobia","correct":"A"},{"section":"Performance & Limitations","qnum":"17","q":"What part of the eye is colour sensitive?","options":{"A":"The rods","B":"The cones","C":"The iris"},"answer_text":"The cones","correct":"B"},{"section":"Performance & Limitations","qnum":"18","q":"What type of lens is used to overcome short sightedness?","options":{"A":"Concave","B":"Bi-focal","C":"Convex"},"answer_text":"Concave","correct":"A"},{"section":"Performance & Limitations","qnum":"19","q":"The type of memory which is most easily influenced by a person's expectations of what should have happened is the","options":{"A":"long term memory","B":"semantic memory","C":"episodic memory"},"answer_text":"episodic memory","correct":"C"},{"section":"Performance & Limitations","qnum":"20","q":"The inability for the eyes to accommodate sufficiently is known as","options":{"A":"Presbyopia","B":"Hypermetropia","C":"myopia"},"answer_text":"Presbyopia","correct":"A"},{"section":"Performance & Limitations","qnum":"21","q":"An aircraft maintenance engineer who wears glasses or contact lenses should","options":{"A":"not require their duties to be restricted providing they wear their glasses/contact lenses at all times they carry out their duties","B":"have their duties restricted accordingly","C":"not require their duties to be restricted providing they have frequent checks to ensure the adequacy of their glasses/contact lenses"},"answer_text":"not require their duties to be restricted providing they have frequent checks to ensure the adequacy of their glasses/contact lenses","correct":"C"},{"section":"Performance & Limitations","qnum":"22","q":"Ultra short term memory has a duration of about","options":{"A":"10 to 20 seconds","B":"80 - 100 milliseconds","C":"2 seconds"},"answer_text":"2 seconds","correct":"C"},{"section":"Performance & Limitations","qnum":"23","q":"What type of lens is used to correct long sightedness?","options":{"A":"Concave","B":"Convex","C":"Bi-focal"},"answer_text":"Convex","correct":"B"},{"section":"Performance & Limitations","qnum":"24","q":"Visual Acuity is the ability","options":{"A":"to differentiate between different colours","B":"to detect objects in the peripheral vision","C":"of the eye to discriminate sharp detail at varying distances"},"answer_text":"of the eye to discriminate sharp detail at varying distances","correct":"C"},{"section":"Performance & Limitations","qnum":"25","q":"The 'working memory' is","options":{"A":"long term memory","B":"short term memory","C":"ultra short term memory"},"answer_text":"short term memory","correct":"B"},{"section":"Performance & Limitations","qnum":"26","q":"Colour defective vision affects","options":{"A":"almost 1 in 10 of men","B":"more women than men","C":"almost 1 in 10 of women"},"answer_text":"almost 1 in 10 of men","correct":"A"},{"section":"Performance & Limitations","qnum":"27","q":"At lower light levels, the visual sensing is performed mainly by the","options":{"A":"fovea","B":"cones","C":"rods"},"answer_text":"rods","correct":"C"},{"section":"Performance & Limitations","qnum":"28","q":"If an image formed on the retina of the eye is inverted relative to the viewers normal perception of the image, the viewer will","options":{"A":"become disoriented and dizzy","B":"consciously mentally revert the image so as to make sense of his/her surroundings","C":"behave and feel normal"},"answer_text":"behave and feel normal","correct":"C"},{"section":"Performance & Limitations","qnum":"29","q":"People with colour defective vision usually have difficulty differentiating between","options":{"A":"red and green","B":"blue and yellow","C":"blue and green"},"answer_text":"red and green","correct":"A"},{"section":"Performance & Limitations","qnum":"30","q":"The 'cocktail party effect' is descriptive of","options":{"A":"selective attention","B":"divided attention","C":"focused attention"},"answer_text":"selective attention","correct":"A"},{"section":"Performance & Limitations","qnum":"31","q":"Hypermetropia is the medical name for","options":{"A":"short sightedness","B":"long sightedness","C":"deafness"},"answer_text":"long sightedness","correct":"B"},{"section":"Performance & Limitations","qnum":"32","q":"What range of sound is usually impaired first with the onset of presbycusis?","options":{"A":"High pitch sound","B":"Low pitch sound","C":"Mid range sound"},"answer_text":"High pitch sound","correct":"A"},{"section":"Performance & Limitations","qnum":"33","q":"The amount of light which is allowed to enter the eye can vary by a factor of","options":{"A":"500:1","B":"5:1","C":"1:5"},"answer_text":"5:1","correct":"B"},{"section":"Performance & Limitations","qnum":"34","q":"Presbyopia often effects the eyes of people after the age of","options":{"A":"55","B":"40","C":"70"},"answer_text":"40","correct":"B"},{"section":"Performance & Limitations","qnum":"35","q":"From what age does hearing ability normally begin to decline?","options":{"A":"40","B":"50","C":"30"},"answer_text":"30","correct":"C"},{"section":"Performance & Limitations","qnum":"36","q":"A person with 20/40 vision has","options":{"A":"worse eyesight as a person with 20/20 vision","B":"better eyesight than a person with 20/20 vision","C":"the same eyesight as a person with 20/20 vision"},"answer_text":"worse eyesight as a person with 20/20 vision","correct":"A"},{"section":"Performance & Limitations","qnum":"37","q":"Long term memory capacity is usually","options":{"A":"unlimited","B":"4 - 8 years","C":"12 months"},"answer_text":"unlimited","correct":"A"},{"section":"Performance & Limitations","qnum":"38","q":"The inability for the eyes to accommodate sufficiently is known as","options":{"A":"myopia","B":"hypermetropia","C":"presbyopia"},"answer_text":"presbyopia","correct":"C"},{"section":"Performance & Limitations","qnum":"39","q":"Ultra short term memory has a duration of about","options":{"A":"10 to 20 seconds","B":"2 seconds","C":"80 - 100 milliseconds"},"answer_text":"2 seconds","correct":"B"},{"section":"Performance & Limitations","qnum":"40","q":"The memory can be aided by","options":{"A":"a checklist","B":"memory checking","C":"mind logging"},"answer_text":"a checklist","correct":"A"},{"section":"Performance & Limitations","qnum":"41","q":"In AWN 47 what is the recommended hearing test?","options":{"A":"The ability to hear an average conversation voice at a distance of 10 feet","B":"The ability to hear a certain noise at 8 feet","C":"The ability to hear an average conversation voice at a distance of 6 feet"},"answer_text":"The ability to hear an average conversation voice at a distance of 6 feet","correct":"C"},{"section":"Performance & Limitations","qnum":"42","q":"Iconic memory","options":{"A":"stores sounds and lasts up to 2 seconds","B":"stores visual information and lasts up to 1/2 second","C":"stores visual information and lasts up to 2 seconds"},"answer_text":"stores visual information and lasts up to 1/2 second","correct":"B"},{"section":"Performance & Limitations","qnum":"43","q":"The first stage in information processing is","options":{"A":"decision","B":"memorizing","C":"perception"},"answer_text":"perception","correct":"C"},{"section":"Performance & Limitations","qnum":"44","q":"Information, if not rehearsed is lost in","options":{"A":"10 - 20 seconds","B":"1 minute","C":"30 - 40 seconds"},"answer_text":"10 - 20 seconds","correct":"A"},{"section":"Performance & Limitations","qnum":"45","q":"In AWN 47, what is the standard hearing test?","options":{"A":"The ability to hear a conversation in a quiet room at 2 metres","B":"The ability to hear a conversation in a quiet room at 10 metres","C":"The ability to hear a conversation in a noisy room at 2 metres"},"answer_text":"The ability to hear a conversation in a quiet room at 2 metres","correct":"A"},{"section":"Performance & Limitations","qnum":"46","q":"Information in the short term memory not rehearsed will be lost in","options":{"A":"10 - 20 seconds","B":"1 - 3 months","C":"2 - 3 weeks"},"answer_text":"10 - 20 seconds","correct":"A"},{"section":"Performance & Limitations","qnum":"47","q":"What is the CAA standard for vision?","options":{"A":"Acceptable uncorrected vision","B":"Acceptable corrected vision","C":"18/20 vision"},"answer_text":"Acceptable corrected vision","correct":"B"},{"section":"Performance & Limitations","qnum":"48","q":"In the human eye, most of the refraction required to bring an image into focus on the retina is accomplished by the","options":{"A":"lens","B":"cornea","C":"iris"},"answer_text":"cornea","correct":"B"},{"section":"Performance & Limitations","qnum":"49","q":"The average capacity of the working memory is about","options":{"A":"7 chunks of information","B":"4 chunks of information","C":"12 chunks of information"},"answer_text":"7 chunks of information","correct":"A"},{"section":"Performance & Limitations","qnum":"50","q":"The retina is situated","options":{"A":"behind the cornea with the lens","B":"in front of the cornea","C":"at the back of the eye with the optic nerve"},"answer_text":"at the back of the eye with the optic nerve","correct":"C"},{"section":"Performance & Limitations","qnum":"51","q":"Motor programme refers to","options":{"A":"motivational computer software","B":"a task that has been carried out so many times that it becomes automatic","C":"a task that becomes programmed into short term memory"},"answer_text":"a task that has been carried out so many times that it becomes automatic","correct":"B"},{"section":"Performance & Limitations","qnum":"52","q":"Memory which can be influenced by a persons expectations of what should have happened is","options":{"A":"echoic","B":"semantic","C":"episodic"},"answer_text":"episodic","correct":"C"},{"section":"Performance & Limitations","qnum":"53","q":"Information in the long term memory","options":{"A":"is easily transferred to the short term memory","B":"is easily lost","C":"is only available under hypnosis"},"answer_text":"is easily lost","correct":"B"},{"section":"Performance & Limitations","qnum":"54","q":"How many things can be stored in the short term memory?","options":{"A":"0 - 5","B":"9 - 15","C":"No limit"},"answer_text":"9 - 15","correct":"B"},{"section":"Performance & Limitations","qnum":"55","q":"In the eye, the cones are used mainly in","options":{"A":"bright light to give fine detail","B":"bright light levels and they give poor colour vision","C":"low light levels and they give poor colour vision"},"answer_text":"bright light to give fine detail","correct":"A"},{"section":"Performance & Limitations","qnum":"56","q":"A person suffering from presbyopia would normally","options":{"A":"wear spectacles when reading or carrying out close detail work","B":"have defective colour vision and not be allowed to carry out maintenance work on cable looms","C":"be short sighted and need to wear spectacles to see objects more than 30 cm away"},"answer_text":"wear spectacles when reading or carrying out close detail work","correct":"A"},{"section":"Performance & Limitations","qnum":"57","q":"Noise signals are carried to the brain by the","options":{"A":"sensory nerve","B":"auditory nerve","C":"Eustachian nerve"},"answer_text":"auditory nerve","correct":"B"},{"section":"Performance & Limitations","qnum":"58","q":"Poking sharp objects into the ear should be avoided as it is likely to result in","options":{"A":"tinnitus ringing","B":"conductive hearing loss","C":"tympanic membrane perforation"},"answer_text":"tympanic membrane perforation","correct":"C"},{"section":"Performance & Limitations","qnum":"59","q":"Attention Getters are designed to","options":{"A":"to gain the operators attention whilst allowing them to continue with the task in hand","B":"to make the operator focus his/her attention fully on the task in hand","C":"to get the operators full attention"},"answer_text":"to get the operators full attention","correct":"C"},{"section":"Performance & Limitations","qnum":"60","q":"At what maximum frequency does the human ear hear?","options":{"A":"16 kHz","B":"8 kHz","C":"20 kHz"},"answer_text":"20 kHz","correct":"C"},{"section":"Performance & Limitations","qnum":"61","q":"Motor programmes","options":{"A":"are behaviour subroutines","B":"require conscious thought to engage","C":"are stored as working rules in long term memory"},"answer_text":"are stored as working rules in long term memory","correct":"C"},{"section":"Performance & Limitations","qnum":"62","q":"The pupil of the eye grows smaller","options":{"A":"in condition of reduced light","B":"to focus the fovea","C":"in condition of increased light"},"answer_text":"in condition of increased light","correct":"C"},{"section":"Performance & Limitations","qnum":"63","q":"Conductive deafness can be caused by damage to the","options":{"A":"cochlea","B":"otoliths","C":"semi circular canals"},"answer_text":"cochlea","correct":"A"},{"section":"Performance & Limitations","qnum":"64","q":"Detail is best sensed by the ______ and movement best sensed by the ______","options":{"A":"the periphery and the periphery","B":"the periphery and fovea","C":"the fovea and periphery"},"answer_text":"the fovea and periphery","correct":"C"},{"section":"Performance & Limitations","qnum":"65","q":"If a person is colour blind, which colours would be most difficult to see?","options":{"A":"Red and green","B":"Blue and red","C":"Yellow and red"},"answer_text":"Red and green","correct":"A"},{"section":"Performance & Limitations","qnum":"66","q":"Myopia is _______ and a ______ lens is needed to correct it","options":{"A":"long sightedness and concave","B":"short sightedness and convex","C":"short sightedness and concave"},"answer_text":"short sightedness and concave","correct":"C"},{"section":"Performance & Limitations","qnum":"67","q":"The Otoliths detect","options":{"A":"angular acceleration","B":"linear acceleration","C":"both angular and linear acceleration"},"answer_text":"linear acceleration","correct":"B"},{"section":"Performance & Limitations","qnum":"68","q":"The nose","options":{"A":"filters the air into the lungs","B":"filters, warms and moistens the air into the lungs","C":"filters the air into the lungs"},"answer_text":"filters, warms and moistens the air into the lungs","correct":"B"},{"section":"Performance & Limitations","qnum":"69","q":"The most common cause of myopia is","options":{"A":"weak accommodation","B":"a shortened eyeball","C":"an elongated eyeball"},"answer_text":"an elongated eyeball","correct":"C"},{"section":"Social Psychology","qnum":"1","q":"What is peer group pressure?","options":{"A":"The influence the House of Lords have over the House of Commons","B":"Our behaviour influenced by our friends and colleagues","C":"The influence an individual has over a group of people"},"answer_text":"Our behaviour influenced by our friends and colleagues","correct":"B"},{"section":"Social Psychology","qnum":"2","q":"A regular behaviour of an individual is known as","options":{"A":"the norm","B":"habit","C":"culture"},"answer_text":"habit","correct":"B"},{"section":"Social Psychology","qnum":"3","q":"In a discussion, the person who is most likely to be agreed with is","options":{"A":"the person who repeats the point most times","B":"the most argumentative person","C":"the person with the highest status"},"answer_text":"the person with the highest status","correct":"C"},{"section":"Social Psychology","qnum":"4","q":"An engineer who has developed his own way of performing a task","options":{"A":"is in regular violation","B":"is improving maintenance efficiency","C":"should be commended for his resourcefulness"},"answer_text":"is in regular violation","correct":"A"},{"section":"Social Psychology","qnum":"5","q":"The aim of human factors programs within an organizations is","options":{"A":"to safeguard the health and safety of maintenance personnel by reducing accidents in the workplace","B":"to optimize the relationship between maintenance personnel and systems with a view to improving safety, efficiency and well-being","C":"to reduce costs by increasing efficiency, safety and quality and decreasing waste through human error"},"answer_text":"and systems with a view to improving safety, efficiency and well-being","correct":"B"},{"section":"Social Psychology","qnum":"6","q":"An aircraft engineer who has 'responsibility'","options":{"A":"must be licensed on the particular type of aircraft","B":"are liable to be called to account as being in charge or control of, or answerable for something","C":"is in a management position within their company hierarchy"},"answer_text":"are liable to be called to account as being in charge or control of, or answerable for something","correct":"B"},{"section":"Social Psychology","qnum":"7","q":"The impact of human factors and human error is most important to","options":{"A":"technicians and engineers","B":"planners and managers","C":"It is equally important to technicians, engineers, planners and managers"},"answer_text":"It is equally important to technicians, engineers, planners and managers","correct":"C"},{"section":"Social Psychology","qnum":"8","q":"Where are the responsibilities of Licensed Aircraft Engineers laid down?","options":{"A":"AWN 3","B":"The Air Navigation Order","C":"CAP 715"},"answer_text":"AWN 3","correct":"A"},{"section":"Social Psychology","qnum":"9","q":"Diffusion of responsibility may occur","options":{"A":"to an individual working as a member of a team","B":"with certain people whether they are working in a team or alone","C":"to an individual working alone"},"answer_text":"to an individual working as a member of a team","correct":"A"},{"section":"Social Psychology","qnum":"10","q":"Risky shift' is","options":{"A":"the probability of being assigned to a work task which involves some element of risk or physical danger","B":"the name given to an inadequate shift handover","C":"the tendency for a group of workers to arrive at a course of action which is riskier than that which any individual member might pursue"},"answer_text":"the tendency for a group of workers to arrive at a course of action which is riskier than that which any individual member might pursue","correct":"C"},{"section":"Social Psychology","qnum":"11","q":"To ensure that a technician remains reasonably current on the aircraft types to which they hold authorizations, they are required that","options":{"A":"they have appropriate continuation/refresher training only","B":"they are involved in at least 6 months of actual aircraft maintenance experience in any 2 year period only","C":"they are involved in at least 6 months of actual aircraft maintenance experience in any 2 year period and they have appropriate continuation/refresher training"},"answer_text":"they are involved in at least 6 months of actual aircraft maintenance experience in any 2 year period and they have appropriate continuation/refresher training","correct":"C"},{"section":"Social Psychology","qnum":"12","q":"The difference between what a person 'can' do and what he 'will' do is largely determined by his","options":{"A":"motivation","B":"education and training","C":"physical and mental health"},"answer_text":"motivation","correct":"A"},{"section":"Social Psychology","qnum":"13","q":"Whose responsibility is it that an engineer remains current on new technology and procedures?","options":{"A":"The organization's","B":"The CAA's","C":"The engineer's"},"answer_text":"The engineer's","correct":"C"},{"section":"Social Psychology","qnum":"14","q":"According to Maslow, safety needs (protection from potentially dangerous objects or situations)","options":{"A":"is the last need of human after all other needs have been satisfied","B":"is second only to physiological needs (food drink, oxygen etc.)","C":"is the most primal need of humans"},"answer_text":"is second only to physiological needs (food drink, oxygen etc.)","correct":"B"},{"section":"Social Psychology","qnum":"15","q":"The symptoms of de-motivation are very similar to the symptoms of","options":{"A":"stress","B":"tiredness","C":"mental illness"},"answer_text":"stress","correct":"A"},{"section":"Social Psychology","qnum":"16","q":"The desire of an individual to 'conform' to a group by allowing one's opinions, attitudes and actions to be affected by prevailing conditions is known as","options":{"A":"peer pressure","B":"esteem needs","C":"culture issues"},"answer_text":"peer pressure","correct":"A"},{"section":"Social Psychology","qnum":"17","q":"Confirmation bias' is","options":{"A":"error in work carried out by a supervisor who has also inspected and signed for his own work","B":"an inspection of work carried out by an independent inspector or supervisor","C":"the subconscious attention to evidence which confirms an engineer's beliefs, and inattention to evidence which contradicts his beliefs"},"answer_text":"engineer's beliefs, and inattention to evidence which contradicts his beliefs","correct":"C"},{"section":"Social Psychology","qnum":"18","q":"A person with low self-esteem is","options":{"A":"more likely to conform to peer pressure","B":"less likely to conform to peer pressure","C":"Conformity to peer pressure is not affected by level of self-esteem"},"answer_text":"more likely to conform to peer pressure","correct":"A"},{"section":"Social Psychology","qnum":"19","q":"Motivation is","options":{"A":"a reward or punishment designed to reduce errors","B":"a reward or punishment designed to increase work rate","C":"the thing that drives someone to do something"},"answer_text":"the thing that drives someone to do something","correct":"C"},{"section":"Social Psychology","qnum":"20","q":"Peer pressure is","options":{"A":"the perceived pressure to carry out a task in the same way your colleagues would","B":"the perceived pressure to conform to what you believe your colleagues expect of you","C":"Nothing"},"answer_text":"the perceived pressure to conform to what you believe your colleagues expect of you","correct":"B"},{"section":"Social Psychology","qnum":"21","q":"The eyesight of an engineer is the responsibility of","options":{"A":"the Quality Manager","B":"the optician","C":"the engineer"},"answer_text":"the engineer","correct":"C"},{"section":"Social Psychology","qnum":"22","q":"A good team is one where every member has","options":{"A":"an opinion","B":"an input","C":"a job"},"answer_text":"an input","correct":"B"},{"section":"Social Psychology","qnum":"23","q":"AWN 47 states that the engineer","options":{"A":"is responsible for health and safety","B":"is responsible for the work he has signed for","C":"does not report for work if unfit"},"answer_text":"does not report for work if unfit","correct":"C"},{"section":"Social Psychology","qnum":"24","q":"An effective group work is when","options":{"A":"everyone contributes in some way","B":"everyone discusses ideas and opinions","C":"everyone has a job to do"},"answer_text":"everyone contributes in some way","correct":"A"},{"section":"Social Psychology","qnum":"25","q":"Which of the following defines a peer pressure situation?","options":{"A":"Your supervising manager pressuring you to complete the current task on time","B":"Your girlfriend telling you to go out with her","C":"Your colleagues pressuring you to work faster so they can go home"},"answer_text":"Your colleagues pressuring you to work faster so they can go home","correct":"C"},{"section":"Social Psychology","qnum":"26","q":"Successful working teams have the following attributes:-","options":{"A":"Members participate in team activities but retain their own individual requirements","B":"All the members participate in team activities and discussions","C":"All the team members work in isolation and therefore provide highly individual solutions to the same problems"},"answer_text":"Members participate in team activities but retain their own individual requirements","correct":"A"},{"section":"Social Psychology","qnum":"27","q":"Good aircraft maintenance supervisory judgment is usually based upon","options":{"A":"knowledge and experience and reference to approved data","B":"the evidence available and forceful management ability","C":"knowledge and experience and reference to course notes"},"answer_text":"knowledge and experience and reference to approved data","correct":"A"},{"section":"Social Psychology","qnum":"28","q":"Organizational culture (whether good or bad) is best described as","options":{"A":"the way we do things around here'","B":"written procedures","C":"team resource management"},"answer_text":"the way we do things around here'","correct":"A"},{"section":"Social Psychology","qnum":"29","q":"In an organization which practices human factors there is","options":{"A":"punishment for all violations","B":"no blame unless there is a deliberate violation","C":"a no blame culture"},"answer_text":"no blame unless there is a deliberate violation","correct":"B"},{"section":"Social Psychology","qnum":"30","q":"A person can be said to be motivated if","options":{"A":"they cut corners to get the job done quickly","B":"they are on a productivity bonus","C":"they are taking action to achieve something"},"answer_text":"they are taking action to achieve something","correct":"C"},{"section":"Social Psychology","qnum":"31","q":"Group polarisation can result in","options":{"A":"a group making a more cautious or extreme decision","B":"a group making a better decision than the individual","C":"members of the group not talking to one another"},"answer_text":"a group making a more cautious or extreme decision","correct":"A"},{"section":"Social Psychology","qnum":"32","q":"Who is most likely to deviate from standard procedure?","options":{"A":"Young, inexperienced man","B":"Over confident, young man","C":"Old tired man"},"answer_text":"Over confident, young man","correct":"B"},{"section":"Social Psychology","qnum":"33","q":"The ideal behaviour of a professional aircraft engineer is","options":{"A":"goal directed rather than person directed","B":"both person and goal directed","C":"neither person or goal directed"},"answer_text":"both person and goal directed","correct":"B"},{"section":"Factors Affecting Performance","qnum":"1","q":"Information on drugs and alcohol can be found in","options":{"A":"BCARs","B":"AWN 47","C":"AWN 3"},"answer_text":"AWN 47","correct":"B"},{"section":"Factors Affecting Performance","qnum":"2","q":"If you have been prescribed new medicine by your doctor you should","options":{"A":"continue with your normal shift pattern","B":"take 3 days off work to try out the new medication","C":"give the new medication a 24 hour trial"},"answer_text":"give the new medication a 24 hour trial","correct":"C"},{"section":"Factors Affecting Performance","qnum":"3","q":"After a general anaesthetic you should","options":{"A":"return to work as soon as possible","B":"not return to work for at least 24 to 48 hours (depending on the individual)","C":"take at least 7 days off work"},"answer_text":"not return to work for at least 24 to 48 hours (depending on the individual)","correct":"B"},{"section":"Factors Affecting Performance","qnum":"4","q":"Your doctor has prescribed you tranquillizers as you are suffering from depression. You should","options":{"A":"not tell your employer and carry on work as normal","B":"tell your employer and carry on work as normal","C":"not work at all when taking the tranquillizers"},"answer_text":"not work at all when taking the tranquillizers","correct":"C"},{"section":"Factors Affecting Performance","qnum":"5","q":"The use of 'pep' pills by an aircraft engineer","options":{"A":"is recommended only when working late or on night shift","B":"as they stimulate the senses and make you less prone to accidents","C":"can only be used if prescribed by your doctor should never be done (except for coffee)"},"answer_text":"should never be done (except for coffee)","correct":"C"},{"section":"Factors Affecting Performance","qnum":"6","q":"You are taking SUDAFED to relief nasal congestion.You should","options":{"A":"stay away from work until you no longer require the SUDAFED","B":"continue to take them at work because SUDAFED has no side effects","C":"avoid making engineering decisions or performing licensed duties"},"answer_text":"avoid making engineering decisions or performing licensed duties","correct":"C"},{"section":"Factors Affecting Performance","qnum":"7","q":"What is slow wave sleep?","options":{"A":"Paradoxical sleep","B":"Stage 2- 4 sleep","C":"REM"},"answer_text":"Stage 2- 4 sleep","correct":"B"},{"section":"Factors Affecting Performance","qnum":"8","q":"Phase 3/4 sleep","options":{"A":"can be induced by alcohol","B":"occurs only once per sleep cycle","C":"is most beneficial for the body's restoration"},"answer_text":"is most beneficial for the body's restoration","correct":"C"},{"section":"Factors Affecting Performance","qnum":"9","q":"Human error can be caused by","options":{"A":"high body temperature","B":"normal body temperature","C":"low body temperature"},"answer_text":"low body temperature","correct":"C"},{"section":"Factors Affecting Performance","qnum":"10","q":"What meal is most recommended after a long shift?","options":{"A":"High carbohydrates","B":"Low carbohydrates","C":"High protein"},"answer_text":"High carbohydrates","correct":"A"},{"section":"Factors Affecting Performance","qnum":"11","q":"Long shift work will","options":{"A":"initially decrease your diagnostic and maintenance ability but eventually increase your diagnostic and maintenance ability as you get used to it","B":"always decrease your diagnostic and maintenance ability","C":"always increase your diagnostic and maintenance ability"},"answer_text":"always decrease your diagnostic and maintenance ability","correct":"B"},{"section":"Factors Affecting Performance","qnum":"12","q":"The circadian cycle body temperature","options":{"A":"does not vary","B":"varies by 1.5\u00b0C","C":"varies by 1.5\u00b0F"},"answer_text":"varies by 1.5\u00b0F","correct":"C"},{"section":"Factors Affecting Performance","qnum":"13","q":"Acute stress is","options":{"A":"intense stress of long duration","B":"typically intense but of short duration","C":"a frequently reoccurring stress or of long duration"},"answer_text":"typically intense but of short duration","correct":"B"},{"section":"Factors Affecting Performance","qnum":"14","q":"Chronic stress is","options":{"A":"a frequently reoccurring stress or of long duration","B":"typically intense but of short duration","C":"intense stress of long duration"},"answer_text":"a frequently reoccurring stress or of long duration","correct":"A"},{"section":"Factors Affecting Performance","qnum":"15","q":"Smoking cannabis","options":{"A":"subtly impairs performance for up to 24 hours","B":"has only a short term affect upon performance","C":"has a noticeable affect on a persons behaviour and performance for up to 24 hours"},"answer_text":"subtly impairs performance for up to 24 hours","correct":"A"},{"section":"Factors Affecting Performance","qnum":"16","q":"Performance is","options":{"A":"inversely proportional to the individuals state of arousal","B":"directly proportional to the individuals state of arousal","C":"greatest only at one optimum level of arousal but diminishes as arousal decreases or increases"},"answer_text":"inversely proportional to the individuals state of arousal","correct":"A"},{"section":"Factors Affecting Performance","qnum":"17","q":"Missing a break in an effort to get a job done within a certain time frame","options":{"A":"can be done by those actually doing the job providing the supervisors take regular breaks","B":"can be counterproductive, as fatigue diminishes motor skills, perception, awareness and standards","C":"can be done providing adequate rest period is available at the end of the shift"},"answer_text":"can be counterproductive, as fatigue diminishes motor skills, perception, awareness and standards","correct":"B"},{"section":"Factors Affecting Performance","qnum":"18","q":"Tiredness causes visual acuity to","options":{"A":"decrease","B":"Visual acuity is not affected by tiredness","C":"increase"},"answer_text":"decrease","correct":"A"},{"section":"Factors Affecting Performance","qnum":"19","q":"Narrowing of attention occurs at","options":{"A":"low levels of arousal","B":"both high and low levels of arousal","C":"high levels of arousal"},"answer_text":"high levels of arousal","correct":"C"},{"section":"Factors Affecting Performance","qnum":"20","q":"The blood/alcohol limit is","options":{"A":"20 milligrams of alcohol per 100 millilitres of blood for commercial aircrew, air traffic controllers and 80 milligrams of alcohol per 100 millilitres of blood for maintenance engineers","B":"40 milligrams of alcohol per 100 millilitres of blood","C":"20 milligrams of alcohol per 100 millilitres of blood for commercial aircrew, air traffic controllers and maintenance engineers"},"answer_text":"20 milligrams of alcohol per 100 millilitres of blood for commercial aircrew, air traffic controllers and 80 milligrams of alcohol per 100 millilitres of blood for maintenance engineers","correct":"A"},{"section":"Factors Affecting Performance","qnum":"21","q":"Paradoxical sleep is also known as","options":{"A":"Stage 3 sleep","B":"Stage 4 sleep","C":"REM sleep"},"answer_text":"REM sleep","correct":"C"},{"section":"Factors Affecting Performance","qnum":"22","q":"When taking medicine for the first time","options":{"A":"take the first dose at least 24 hours before any duty to ensure that it does not have any adverse effects","B":"absent yourself from work for the duration of use of the medicine","C":"consult a doctor if you need to carry out any duties"},"answer_text":"take the first dose at least 24 hours before any duty to ensure that it does not have any adverse effects","correct":"A"},{"section":"Factors Affecting Performance","qnum":"23","q":"For a man to maintain his fitness and health the conducive maximum recommended alcohol intake is","options":{"A":"3 - 4 units per week","B":"28 units per week","C":"28 units per day"},"answer_text":"28 units per week","correct":"B"},{"section":"Factors Affecting Performance","qnum":"24","q":"Human Circadian rhythms cycle on a","options":{"A":"25 hour timescale","B":"8 hour timescale","C":"24 hour time scale"},"answer_text":"25 hour timescale","correct":"A"},{"section":"Factors Affecting Performance","qnum":"25","q":"Removal of alcohol from the blood stream","options":{"A":"can be speeded up by sleeping","B":"cannot be speeded up","C":"can be speeded up by drinking strong coffee"},"answer_text":"cannot be speeded up","correct":"B"},{"section":"Factors Affecting Performance","qnum":"26","q":"For a person with normal Circadian rhythms, the body temperature will be lowest","options":{"A":"between 4 and 6 o'clock in the morning","B":"upon waking","C":"at midday"},"answer_text":"between 4 and 6 o'clock in the morning","correct":"A"},{"section":"Factors Affecting Performance","qnum":"27","q":"If a maintenance engineer has a cold or flu he should","options":{"A":"only absent himself from duty if his work contract includes sickness pay","B":"only absent himself from duty if there are no staff shortages at his workplace or within his work team","C":"absent himself from duty until fully recovered, regardless of other factors"},"answer_text":"absent himself from duty until fully recovered, regardless of other factors","correct":"C"},{"section":"Factors Affecting Performance","qnum":"28","q":"Consumption of alcohol","options":{"A":"increases mental and physical reaction times","B":"has no affect upon mental and physical reaction times","C":"decreases mental and physical reaction times"},"answer_text":"increases mental and physical reaction times","correct":"A"},{"section":"Factors Affecting Performance","qnum":"29","q":"Alertness and performance is reduced when the body temperature is","options":{"A":"above normal","B":"below normal","C":"either above or below normal"},"answer_text":"below normal","correct":"B"},{"section":"Factors Affecting Performance","qnum":"30","q":"A good rule of thumb for an adequate amount of sleep is","options":{"A":"one hour of high quality sleep is good for two hours of activity","B":"two hours of high quality sleep is good for one hour of activity","C":"one hour of high quality sleep is good for one hour of activity"},"answer_text":"one hour of high quality sleep is good for two hours of activity","correct":"A"},{"section":"Factors Affecting Performance","qnum":"31","q":"Finding that familiar tasks (such as programming the video recorder) seems more complicated than usual, could be an early indication of","options":{"A":"acute stress","B":"chronic fatigue","C":"a cold or flu"},"answer_text":"chronic fatigue","correct":"B"},{"section":"Factors Affecting Performance","qnum":"32","q":"The only permitted stimulant is","options":{"A":"bromine","B":"caffeine","C":"amphetamine"},"answer_text":"caffeine","correct":"B"},{"section":"Factors Affecting Performance","qnum":"33","q":"Large amounts of caffeine can","options":{"A":"cause anxiety, headaches and stress","B":"reduce anxiety and stress","C":"improve alertness and increase awareness"},"answer_text":"cause anxiety, headaches and stress","correct":"A"},{"section":"Factors Affecting Performance","qnum":"34","q":"The symptoms of stress are","options":{"A":"violence, sickness, absence from work, drug and alcohol abuse","B":"indications of improved work performance","C":"irritability, forgetfulness, sickness, absence from work, drug and alcohol abuse"},"answer_text":"irritability, forgetfulness, sickness, absence from work, drug and alcohol abuse","correct":"C"},{"section":"Factors Affecting Performance","qnum":"35","q":"Sleeping tablets can","options":{"A":"slow reaction and dull the senses","B":"increase alertness after waking the following morning","C":"help REM sleep and realign circadian rhythms"},"answer_text":"slow reaction and dull the senses","correct":"A"},{"section":"Factors Affecting Performance","qnum":"36","q":"Information for certifying staff when medically unfit is found in","options":{"A":"AWN 3","B":"AWN 47","C":"ANO"},"answer_text":"AWN 47","correct":"B"},{"section":"Factors Affecting Performance","qnum":"37","q":"What effect would the consumption of 3 - 5 units ofalcohol?","options":{"A":"Loss of quality of sleep","B":"Low REM sleep","C":"A drop in body temperature"},"answer_text":"Loss of quality of sleep","correct":"A"},{"section":"Factors Affecting Performance","qnum":"38","q":"Long shift work","options":{"A":"decreases the ability to recognize defects","B":"increases the ability to recognize defects","C":"has no effect on the ability to recognize defects"},"answer_text":"decreases the ability to recognize defects","correct":"A"},{"section":"Factors Affecting Performance","qnum":"39","q":"Circadian Rhythms control","options":{"A":"body temperature","B":"urine output","C":"sleeping patterns"},"answer_text":"body temperature","correct":"A"},{"section":"Factors Affecting Performance","qnum":"41","q":"A stimulant allowed to be taken without a doctor's prescription is","options":{"A":"bromine","B":"caffeine","C":"antihistamine"},"answer_text":"caffeine","correct":"B"},{"section":"Factors Affecting Performance","qnum":"42","q":"The conditions laid down in AWN 47 are applicable to aircraft engineers","options":{"A":"who sign for work completed","B":"when under the influence of drink or drugs","C":"for their safety at work"},"answer_text":"when under the influence of drink or drugs","correct":"B"},{"section":"Factors Affecting Performance","qnum":"43","q":"Consumption of 3 - 4 units of alcohol before sleep can","options":{"A":"increase REM sleep","B":"decrease the quality of sleep","C":"lower the body temperature"},"answer_text":"decrease the quality of sleep","correct":"B"},{"section":"Factors Affecting Performance","qnum":"44","q":"The cycles of body temperature, sleep requirement and alertness are called","options":{"A":"earth cycles","B":"circadian rhythms","C":"ecto - meridian cycles"},"answer_text":"circadian rhythms","correct":"B"},{"section":"Factors Affecting Performance","qnum":"45","q":"The intake of caffeine in moderate quantities can result in","options":{"A":"anxiety, headaches and negative mood states","B":"lack of sleep and subsequent disruption to the circadian rhythms","C":"a temporary increase in the ability to sustain vigilance and increased alertness"},"answer_text":"a temporary increase in the ability to sustain vigilance and increased alertness","correct":"C"},{"section":"Factors Affecting Performance","qnum":"46","q":"Working excessively long shifts during unsociable hours can lead to","options":{"A":"decreased ability to detect defects during aircraft maintenance","B":"an increased immunity to stress","C":"increased ability to detect defects during aircraft maintenance"},"answer_text":"decreased ability to detect defects during aircraft maintenance","correct":"A"},{"section":"Factors Affecting Performance","qnum":"47","q":"In theory, human error is most likely to occur","options":{"A":"when the body temperature is at its lowest","B":"during very hot weather","C":"when the body temperature is stable"},"answer_text":"when the body temperature is at its lowest","correct":"A"},{"section":"Factors Affecting Performance","qnum":"48","q":"An individual suffering from stress when confronted with a task within his capability is likely to think the task is","options":{"A":"too demanding","B":"not demanding enough","C":"someone else's responsibility"},"answer_text":"someone else's responsibility","correct":"C"},{"section":"Factors Affecting Performance","qnum":"49","q":"AWN 47 does not mention","options":{"A":"pep's","B":"sudafed","C":"melatonin"},"answer_text":"melatonin","correct":"C"},{"section":"Factors Affecting Performance","qnum":"50","q":"3 - 4 units of alcohol taken before sleep reduces","options":{"A":"both","B":"quantity of sleep","C":"quality of sleep"},"answer_text":"both","correct":"A"},{"section":"Factors Affecting Performance","qnum":"51","q":"Which is important in sleep?","options":{"A":"Quantity","B":"Quality","C":"Both"},"answer_text":"Both","correct":"C"},{"section":"Factors Affecting Performance","qnum":"52","q":"Stressors in the environment of noise and heat will cause","options":{"A":"no loss of attention","B":"a total loss of attention","C":"a loss of attention and a distraction"},"answer_text":"a loss of attention and a distraction","correct":"C"},{"section":"Factors Affecting Performance","qnum":"53","q":"When going from day shift to night shift, efficiency","options":{"A":"stays the same","B":"will drop off after the first four weeks","C":"will drop off in the first four weeks"},"answer_text":"will drop off in the first four weeks","correct":"C"},{"section":"Factors Affecting Performance","qnum":"54","q":"When working on aircraft, the consumption of alcohol","options":{"A":"is permissible providing the drink driving limit is not exceeded","B":"you cannot work on aircraft even 8 hours after consuming large quantities of alcohol","C":"a certain amount is permissible"},"answer_text":"you cannot work on aircraft even 8 hours after consuming large quantities of alcohol","correct":"B"},{"section":"Factors Affecting Performance","qnum":"55","q":"Drinking 3 - 4 units of alcohol before sleeping results in","options":{"A":"loss of non-REM sleep","B":"loss of quality sleep","C":"a drop in body temperature"},"answer_text":"loss of quality sleep","correct":"B"},{"section":"Factors Affecting Performance","qnum":"56","q":"What effect does alcohol have on sleep?","options":{"A":"Both","B":"Decreases quantity of sleep","C":"Decreases quality of sleep"},"answer_text":"Both","correct":"A"},{"section":"Factors Affecting Performance","qnum":"57","q":"Narrowing of attention occurs in states of","options":{"A":"optimum arousal","B":"low arousal","C":"high arousal"},"answer_text":"high arousal","correct":"C"},{"section":"Factors Affecting Performance","qnum":"58","q":"Hypoxia can","options":{"A":"cause a person to slip into a coma if they are not quickly warmed up again","B":"impair the sensitivity of the rods and hence have a detrimental effect on eyesight","C":"improve the night vision of the cones of the eyes"},"answer_text":"impair the sensitivity of the rods and hence have a detrimental effect on eyesight","correct":"B"},{"section":"Factors Affecting Performance","qnum":"59","q":"You are taking prescribed drugs","options":{"A":"Carry on working, as long as you know the primary and secondary side effects","B":"Do not work","C":"Work and don't care about other things"},"answer_text":"Carry on working, as long as you know the primary and secondary side effects","correct":"A"},{"section":"Factors Affecting Performance","qnum":"60","q":"Which of the following is an acceptable substance, with regard to aircraft maintenance?","options":{"A":"Penicillin","B":"Caffeine","C":"Beta Blockers"},"answer_text":"Caffeine","correct":"B"},{"section":"Factors Affecting Performance","qnum":"61","q":"Circadian Rhythms have a cycle of","options":{"A":"25 Hours","B":"24 Hours","C":"23 Hours"},"answer_text":"25 Hours","correct":"A"},{"section":"Factors Affecting Performance","qnum":"63","q":"After drinking alcohol, absorption is dependant on","options":{"A":"weight","B":"age","C":"time"},"answer_text":"time","correct":"C"},{"section":"Factors Affecting Performance","qnum":"64","q":"An engineer has a body mass index of 28. Thiswould normally be classed as","options":{"A":"a healthy weight with no real risk of developing healthproblems","B":"underweight with no real risk of developing health problems","C":"overweight and at a risk of developing health problems"},"answer_text":"a healthy weight with no real risk of developing healthproblems","correct":"A"},{"section":"Factors Affecting Performance","qnum":"66","q":"If an average adult has consumed the equivalent of four units of alcohol, how long will it take for this level to drop to two units","options":{"A":"four hours","B":"eight hours","C":"two hours"},"answer_text":"two hours","correct":"C"},{"section":"Factors Affecting Performance","qnum":"67","q":"How many stages of sleep are there?","options":{"A":"5","B":"3","C":"4"},"answer_text":"5","correct":"A"},{"section":"Factors Affecting Performance","qnum":"68","q":"REM sleep can also be referred to as","options":{"A":"paranormal sleep","B":"slow wave sleep","C":"paradoxical sleep"},"answer_text":"paradoxical sleep","correct":"C"},{"section":"Factors Affecting Performance","qnum":"69","q":"The presence of something damaging to ones health would be an example of a","options":{"A":"psychological stressor","B":"reactive stressor","C":"physical stressor"},"answer_text":"physical stressor","correct":"C"},{"section":"Factors Affecting Performance","qnum":"70","q":"Aircraft engineers can take common sense steps to maintain their fitness and health. These are known as","options":{"A":"self-improvement measures","B":"positive self-improvement","C":"positive measures"},"answer_text":"positive measures","correct":"C"},{"section":"Factors Affecting Performance","qnum":"71","q":"The amount of stress experienced with a particular task is dependent on","options":{"A":"the perceived demand and actual ability","B":"the perceived demand and perceived ability","C":"the actual demand and actual ability"},"answer_text":"the perceived demand and perceived ability","correct":"B"},{"section":"Factors Affecting Performance","qnum":"73","q":"Long shift work will","options":{"A":"increase your diagnostic and maintenance ability","B":"initially decrease your diagnostic and maintenance ability but then you will get used to it","C":"decrease your diagnostic and maintenance ability"},"answer_text":"decrease your diagnostic and maintenance ability","correct":"C"},{"section":"Factors Affecting Performance","qnum":"74","q":"Phase 3 and 4 sleep is","options":{"A":"occurs only once per sleep cycle","B":"most beneficial for the bodies recovery","C":"induced by alcohol"},"answer_text":"most beneficial for the bodies recovery","correct":"B"},{"section":"Factors Affecting Performance","qnum":"75","q":"Clinical insomnia can be caused by","options":{"A":"caffeine","B":"jet lag","C":"a change of environment"},"answer_text":"caffeine","correct":"A"},{"section":"Factors Affecting Performance","qnum":"76","q":"The normal recovery for Circadian dysrhythmia is","options":{"A":"at a rate 2.5 hours a day","B":"at a rate 1.5 hours a day","C":"at a rate 2 hours a day"},"answer_text":"at a rate 1.5 hours a day","correct":"B"},{"section":"Factors Affecting Performance","qnum":"77","q":"When comparing noise levels on Human Performance","options":{"A":"noise has no effect on the number of errors or the speed of performance of an individual","B":"an individual can find noise levels annoying but still perform well indefinitely","C":"noise is directly proportional to the number of errors and the speed of performance of an individual"},"answer_text":"noise is directly proportional to the number of errors and the speed of performance of an individual","correct":"C"},{"section":"Physical Environment","qnum":"1","q":"Environmental stresses are","options":{"A":"caused by noise, fumes, heat and vibration","B":"tolerated by everyone equally","C":"not normally cumulative"},"answer_text":"caused by noise, fumes, heat and vibration","correct":"A"},{"section":"Physical Environment","qnum":"2","q":"Employers must provide their employees with personal ear protectors if the noise level reaches","options":{"A":"70 dB","B":"85 dB","C":"60 dB"},"answer_text":"85 dB","correct":"B"},{"section":"Physical Environment","qnum":"3","q":"The maximum allowable noise dose is","options":{"A":"85 dB","B":"any combination of noise and time which exceeds 90 dB TWA","C":"90 dB for 24 hours"},"answer_text":"any combination of noise and time which exceeds 90 dB TWA","correct":"B"},{"section":"Physical Environment","qnum":"4","q":"Environmental capture' is a type of error possible when an engineer does the same job repeatedly","options":{"A":"but on different types of aircraft","B":"on the same type of aircraft","C":"in a short timescale"},"answer_text":"on the same type of aircraft","correct":"B"},{"section":"Physical Environment","qnum":"5","q":"In the UK, an air-side ramp vehicle driver is most likely to go deaf in","options":{"A":"the left ear","B":"both ears","C":"the right ear"},"answer_text":"the right ear","correct":"C"},{"section":"Physical Environment","qnum":"6","q":"Up to what proximity to an aircraft with engines running is the use of ear protection recommended for maintenance personnel?","options":{"A":"200 - 300 metres","B":"20 - 30 metres","C":"2 - 3 metres"},"answer_text":"200 - 300 metres","correct":"A"},{"section":"Physical Environment","qnum":"7","q":"Studies have shown that working outside in a temperature of 55\u00b0F will have what effect on hand dexterity?","options":{"A":"Around 50%","B":"Very slight","C":"None"},"answer_text":"Around 50%","correct":"A"},{"section":"Physical Environment","qnum":"8","q":"When working with bright lights consideration should be given to","options":{"A":"blurred image","B":"shadows","C":"glare"},"answer_text":"glare","correct":"C"},{"section":"Physical Environment","qnum":"9","q":"Which of the following is true?","options":{"A":"Noise affects the standard of work proportionately with the level of the noise","B":"Noise does not affect a person's standard of work","C":"Noise does affect the standard of work with certain people"},"answer_text":"Noise does affect the standard of work with certain people","correct":"C"},{"section":"Physical Environment","qnum":"10","q":"The effect on an engineer of environmental noise is","options":{"A":"it improves concentration and quality of work","B":"it decreases concentration and quality of work","C":"it has no affect on concentration of quality of work"},"answer_text":"it decreases concentration and quality of work","correct":"B"},{"section":"Physical Environment","qnum":"11","q":"Excess noise in a working environment can","options":{"A":"raise resistance to other stresses","B":"not affect performance","C":"lower resistance to other stresses"},"answer_text":"lower resistance to other stresses","correct":"C"},{"section":"Physical Environment","qnum":"12","q":"If the temperature is - 15\u00b0C and you are working on the line, you should","options":{"A":"rotate engineers regularly and have a supervisor keep an eye on them","B":"carry on regardless of the weather to keep the aircraft flying","C":"stop all maintenance until the weather improves"},"answer_text":"stop all maintenance until the weather improves","correct":"C"},{"section":"Physical Environment","qnum":"13","q":"Studies have shown that working outside in a temperature of 55\u00b0F will have what effect on hand dexterity?","options":{"A":"None","B":"Around 50% reduction","C":"Very slight reduction"},"answer_text":"Around 50% reduction","correct":"B"},{"section":"Physical Environment","qnum":"14","q":"Cold stress can be influenced by","options":{"A":"insufficient vitamins in the diet","B":"a drop in body temperature","C":"the wind chill factor"},"answer_text":"the wind chill factor","correct":"C"},{"section":"Physical Environment","qnum":"15","q":"Environmental stresses in an extreme high temperature and noisy environment causes","options":{"A":"attention to be disturbed and distributed","B":"no loss of attention or distraction","C":"total loss of attention"},"answer_text":"attention to be disturbed and distributed","correct":"A"},{"section":"Physical Environment","qnum":"16","q":"Which of the following environments is best suited to aircraft maintenance?","options":{"A":"Working outside, at night, in the rain","B":"Working outside, in the direct midday sun","C":"Working inside in a well lit, comfortable hangar"},"answer_text":"Working inside in a well lit, comfortable hangar","correct":"C"},{"section":"Physical Environment","qnum":"17","q":"Intense or loud noise may lead to","options":{"A":"deafness","B":"fatigue","C":"no effects"},"answer_text":"fatigue","correct":"B"},{"section":"Physical Environment","qnum":"18","q":"Facility lighting in a hangar should be","options":{"A":"no brighter than 10 lux","B":"provided by fixed light units giving light to shadow ratio of 3:1","C":"portable so that individual tasks may be well lit"},"answer_text":"provided by fixed light units giving light to shadow ratio of 3:1","correct":"B"},{"section":"Physical Environment","qnum":"19","q":"When tasks are being designed, the maximum mass an engineer should lift is","options":{"A":"32 kg","B":"23 kg","C":"50 kg"},"answer_text":"23 kg","correct":"B"},{"section":"Physical Environment","qnum":"20","q":"Sensing and perception errors are most likely to result from","options":{"A":"distraction of other engineers","B":"poor lighting or noise","C":"lack of adequate training"},"answer_text":"poor lighting or noise","correct":"B"},{"section":"Physical Environment","qnum":"21","q":"Task lighting in a hangar is mainly","options":{"A":"provided by fixed lighting","B":"provided by fluorescent tubes","C":"portable so that individual tasks may be well lit"},"answer_text":"portable so that individual tasks may be well lit","correct":"C"},{"section":"Tasks","qnum":"1","q":"When inspecting an airframe structure for small cracks, to avoid a crack being missed you should","options":{"A":"hold the vision stationary for several seconds on each area to allow the eye to focus correctly","B":"not use a mirror as mirrors absorb and refract light and may obscure a crack","C":"constantly move the eye across and around the area of interest to avoid the crack falling into the eye's natural blind spot"},"answer_text":"interest to avoid the crack falling into the eye's natural blind spot","correct":"C"},{"section":"Tasks","qnum":"2","q":"When a person moves from a poorly lit area to a well lit area, what is the minimum time they should allow for the eyes to adapt?","options":{"A":"7 minutes","B":"7 seconds","C":"30 seconds"},"answer_text":"7 minutes","correct":"A"},{"section":"Tasks","qnum":"3","q":"Itemized checklists should be dealt with","options":{"A":"in any order, provided all steps are completed","B":"item by item, in order, to cover every step diligently","C":"as memorized"},"answer_text":"item by item, in order, to cover every step diligently","correct":"B"},{"section":"Tasks","qnum":"4","q":"The main disadvantage of carrying out critical inspections under very bright artificial light is","options":{"A":"glare","B":"shadows","C":"filtered light"},"answer_text":"glare","correct":"A"},{"section":"Tasks","qnum":"5","q":"When carrying out a visual inspection, an engineer is likely to make a parallax error when","options":{"A":"inspecting a component using a 5x or 10x magnifying glass","B":"using precision measuring instruments such as a vernier gauge or AVO meter","C":"Nothing"},"answer_text":"using precision measuring instruments such as a vernier gauge or AVO meter","correct":"B"},{"section":"Communication","qnum":"1","q":"What constitutes a good work handover?","options":{"A":"A written and verbal account of the work done","B":"A written documentation of the work done","C":"A verbal account of the work done"},"answer_text":"A written and verbal account of the work done","correct":"A"},{"section":"Communication","qnum":"2","q":"A good shift handover should include details of","options":{"A":"tasks that have been completed; persons who carried out the tasks; tasks to be carried out and general company and technical information","B":"tasks that have been completed; tasks in progress, their status, any problems encountered etc.; tasks to be carried out and tools required to carry out the tasks","C":"tasks that have been completed; tasks in progress, their status, any problems encountered etc.; tasks to be carried out and general company and technical information"},"answer_text":"tasks that have been completed; tasks in progress, their status, any problems encountered etc.; tasks to be carried out and general company and technical information","correct":"C"},{"section":"Communication","qnum":"4","q":"A good practice for a shift handover is for shifts to be specifically rostered so there is an overlap of","options":{"A":"2 - 3 hours","B":"5 - 10 minutes","C":"20 - 30 minutes"},"answer_text":"20 - 30 minutes","correct":"C"},{"section":"Communication","qnum":"5","q":"Asynchronous' communication includes","options":{"A":"immediate voice communication by radio link","B":"technical manuals, memos, Advisory Circulars and Airworthiness Directives","C":"face-to-face communications"},"answer_text":"technical manuals, memos, Advisory Circulars and Airworthiness Directives","correct":"B"},{"section":"Communication","qnum":"7","q":"The most effective form of communication is","options":{"A":"verbal communication","B":"written communication","C":"explicit communication"},"answer_text":"explicit communication","correct":"C"},{"section":"Communication","qnum":"10","q":"What is the most important means of communication in aircraft maintenance engineering?","options":{"A":"Written","B":"Implicit","C":"Verbal"},"answer_text":"Written","correct":"A"},{"section":"Communication","qnum":"13","q":"If you are given a task that you are unsure of you should","options":{"A":"consult the appropriate approved data","B":"ask someone who has done it before","C":"consult type course notes"},"answer_text":"consult the appropriate approved data","correct":"A"},{"section":"Communication","qnum":"16","q":"The alerting system for an important system failure should be","options":{"A":"an aural warning","B":"a flashing visual signal, preferably red","C":"a dolls-eye indicator"},"answer_text":"an aural warning","correct":"A"},{"section":"Human Error","qnum":"1","q":"The SHEL model of human factors takes into account","options":{"A":"Software, hardware, environment and liveware","B":"Software, hardware, efficiency and liveware","C":"Software, hardware, environment and location"},"answer_text":"Software, hardware, environment and liveware","correct":"A"},{"section":"Human Error","qnum":"2","q":"What part of the SHEL model would the writing and interpretation of maintenance manuals fit into?","options":{"A":"Hardware","B":"Software","C":"Environment"},"answer_text":"Software","correct":"B"},{"section":"Human Error","qnum":"3","q":"The 'error chain' theory refers to","options":{"A":"a chain of errors within an organizations can be investigated, and similar errors prevented by determining a common link between them","B":"a company is only as good as its weakest employee or employees, and removal of that/those employee from the chain should prevent errors","C":"errors are caused by a chain of linked events, and the breaking of one link in the chain will prevent the error"},"answer_text":"errors are caused by a chain of linked events, and the breaking of one link in the chain will prevent the error","correct":"C"},{"section":"Human Error","qnum":"4","q":"What part of the SHEL model would the aircraft design fit into?","options":{"A":"Liveware","B":"Hardware","C":"Environment"},"answer_text":"Hardware","correct":"B"},{"section":"Human Error","qnum":"5","q":"Which part of the SHEL model is most difficult to protect from errors by 'designing out' or to 'work around'?","options":{"A":"Liveware","B":"Software","C":"Environment"},"answer_text":"Liveware","correct":"A"},{"section":"Human Error","qnum":"6","q":"A violation in an aircraft maintenance procedure","options":{"A":"is usually carried out with the best intentions from a genuine desire to 'get the job done'","B":"is always considered an act of vandalism or sabotage","C":"is always carried out to satisfy some personal need, often unrelated to the actual task"},"answer_text":"is usually carried out with the best intentions from a genuine desire to 'get the job done'","correct":"A"},{"section":"Human Error","qnum":"7","q":"Which type of human error is easiest to correct?","options":{"A":"Constant error","B":"Reversible error","C":"Variable error"},"answer_text":"Constant error","correct":"A"},{"section":"Human Error","qnum":"8","q":"In the 'slips, lapses and mistakes' definition of errors, forgetting to replace an engine cowling would be considered a","options":{"A":"mistake","B":"lapse","C":"slip"},"answer_text":"lapse","correct":"B"},{"section":"Human Error","qnum":"9","q":"In the 'slips, lapses and mistakes' definition of errors, a mistake would typically occur at the","options":{"A":"storage (memory) stage","B":"execution stage","C":"planning stage"},"answer_text":"planning stage","correct":"C"},{"section":"Human Error","qnum":"10","q":"On a task that is complex, an engineer uses his own procedures due to pressure. This is legally termed","options":{"A":"modification","B":"initiative","C":"violation"},"answer_text":"violation","correct":"C"},{"section":"Human Error","qnum":"11","q":"Visual inspection by an 'experienced' maintenance engineer is","options":{"A":"knowledge and rule base behaviour","B":"skill and knowledge based behaviour","C":"skill and rule based behaviour"},"answer_text":"knowledge and rule base behaviour","correct":"A"},{"section":"Human Error","qnum":"12","q":"Troubleshooting is","options":{"A":"rule based","B":"skill based","C":"knowledge based"},"answer_text":"rule based","correct":"A"},{"section":"Human Error","qnum":"13","q":"A violation is","options":{"A":"an unintentional error","B":"a deliberate departure from the rules","C":"an intentional act of sabotage"},"answer_text":"a deliberate departure from the rules","correct":"B"},{"section":"Human Error","qnum":"14","q":"A mistake is","options":{"A":"a deliberate departure from the rules","B":"an intentional act of sabotage","C":"an unintentional error"},"answer_text":"an unintentional error","correct":"C"},{"section":"Human Error","qnum":"15","q":"Whilst working on an aircraft a spanner placed on the wing surface is kicked off and subsequently falls into an open engine cowl, breaking off a sensor connector. This is an example of","options":{"A":"a skill based error","B":"Murphy's law","C":"a punishable occurrence"},"answer_text":"Murphy's law","correct":"B"},{"section":"Human Error","qnum":"16","q":"An experienced engineer fits the wrong seal during a routine component change. This is","options":{"A":"skill based","B":"rule based","C":"knowledge based"},"answer_text":"rule based","correct":"B"},{"section":"Human Error","qnum":"17","q":"An engineer is working on a wing and kicks a spanner off into an engine cowl and breaks a sensor. This is","options":{"A":"knowledge based error","B":"skill based error","C":"rule based error"},"answer_text":"skill based error","correct":"B"},{"section":"Human Error","qnum":"18","q":"The difference between a mistake and a violation is","options":{"A":"a mistake is less serious than a violation","B":"a violation is not deliberate","C":"a mistake is unintentional and a violation is deliberate"},"answer_text":"a mistake is unintentional and a violation is deliberate","correct":"C"},{"section":"Human Error","qnum":"20","q":"An experienced engineer is fitting a valve. A required seal is not fitted. What type of error is this?","options":{"A":"Knowledge based","B":"Rule based","C":"Skill based"},"answer_text":"Rule based","correct":"B"},{"section":"Human Error","qnum":"21","q":"The hub of the SHEL model of human factors is","options":{"A":"liveware","B":"hardware","C":"enviroment"},"answer_text":"liveware","correct":"A"},{"section":"Human Error","qnum":"22","q":"A type 1 visual inspection error occurs when","options":{"A":"a faulty item is missed","B":"a good item is incorrectly identified as faulty","C":"a duplicate inspection is not carried out"},"answer_text":"a good item is incorrectly identified as faulty","correct":"B"},{"section":"Human Error","qnum":"23","q":"What is the difference between error and violation?","options":{"A":"Violation is deliberate, error is not","B":"Error is deliberate, violation is not","C":"No difference"},"answer_text":"Violation is deliberate, error is not","correct":"A"},{"section":"Human Error","qnum":"24","q":"What is a latent failure?","options":{"A":"A mistake that has already been made, but has not yet caused an accident","B":"Receiving bad instruction from a manager who is out of touch with maintenance","C":"A failure which could not have been predicted"},"answer_text":"A mistake that has already been made, but has not yet caused an accident","correct":"A"},{"section":"Human Error","qnum":"25","q":"What happens when you break the 'chain of error'?","options":{"A":"Accident happens","B":"Pilot submits report within 72 hours","C":"Accident does not happen"},"answer_text":"Accident does not happen","correct":"C"},{"section":"Human Error","qnum":"26","q":"If an engineer forgets to fit a seal to an engine drain plug, he or she has","options":{"A":"made an error of commission","B":"committed a violation","C":"made an error of omission"},"answer_text":"made an error of omission","correct":"C"},{"section":"Human Error","qnum":"27","q":"An engineer is performing a task in less than ideal conditions in order to meet an operational deadline is","options":{"A":"committed a routine error","B":"committing a situational violation","C":"making a rule based slip"},"answer_text":"committing a situational violation","correct":"B"},{"section":"Human Error","qnum":"28","q":"An engineer who has developed his or her own method of performing a complex task","options":{"A":"should be commended for his/her resourcefulness","B":"is performing a rule based behaviour","C":"is violating on a regular basis"},"answer_text":"is violating on a regular basis","correct":"C"},{"section":"Human Error","qnum":"29","q":"Error tolerance in maintenance progress refers to","options":{"A":"performance of tasks specifically designed to identify errors during a maintenance task","B":"ability of a system to remain functional after a maintenance error","C":"process of eliminating the contributing factors to error"},"answer_text":"process of eliminating the contributing factors to error. OR ability of a system to remain functional after a maintenance error","correct":"B"},{"section":"Hazards in the Workplace","qnum":"1","q":"Engineers often work on raised platforms, ladders etc. What dangers can this contribute to?","options":{"A":"Staging may be made of wood","B":"Ladder may slip and man falls","C":"Two workers may be carrying out maintenance on the same lift"},"answer_text":"Ladder may slip and man falls","correct":"B"},{"section":"Hazards in the Workplace","qnum":"2","q":"Risk assessment and management is","options":{"A":"reduction of risks to a tolerable standard and monitoring the situation","B":"the investigation of risks and totally removing them and the monitoring of new work practices","C":"choosing a cheaper supplier or manufacturer for parts"},"answer_text":"reduction of risks to a tolerable standard and monitoring the situation","correct":"A"},{"section":"Hazards in the Workplace","qnum":"3","q":"When carrying out a risk assessment","options":{"A":"a hard hat should be worn","B":"it is necessary to identify where equipment/procedures might fail","C":"Nothing"},"answer_text":"it is necessary to identify where equipment/procedures might fail","correct":"B"}];
+
+const SECTION_ORDER = ["General","Performance & Limitations","Social Psychology","Factors Affecting Performance","Physical Environment","Tasks","Communication","Human Error","Hazards in the Workplace"];
+
+let state = {
+  selectedSections: new Set(SECTION_ORDER),
+  count: 20,
+  pool: [],
+  idx: 0,
+  correctCount: 0,
+  answers: [], // {q, chosen, correct}
+  missedForRetry: []
+};
+
+function sectionCounts(){
+  const c = {};
+  SECTION_ORDER.forEach(s => c[s] = 0);
+  DATA.forEach(q => c[q.section] = (c[q.section]||0) + 1);
+  return c;
+}
+
+function renderChips(){
+  const counts = sectionCounts();
+  const grid = document.getElementById('chipGrid');
+  grid.innerHTML = '';
+  SECTION_ORDER.forEach(sec => {
+    const chip = document.createElement('div');
+    chip.className = 'chip active';
+    chip.dataset.section = sec;
+    chip.innerHTML = `${sec} <span class="count">${counts[sec]}</span>`;
+    chip.addEventListener('click', () => {
+      if(state.selectedSections.has(sec)){
+        state.selectedSections.delete(sec);
+        chip.classList.remove('active');
+      } else {
+        state.selectedSections.add(sec);
+        chip.classList.add('active');
+      }
+      updateAvailLabel();
+    });
+    grid.appendChild(chip);
+  });
+  updateAvailLabel();
+}
+
+function availableCount(){
+  return DATA.filter(q => state.selectedSections.has(q.section)).length;
+}
+
+function updateAvailLabel(){
+  const avail = availableCount();
+  document.getElementById('availLabel').textContent = `${avail} available in selection`;
+  if(state.count > avail) {
+    state.count = Math.max(1, avail);
+    document.getElementById('countVal').textContent = state.count;
+  }
+  document.getElementById('startBtn').disabled = avail === 0;
+}
+
+document.getElementById('decBtn').addEventListener('click', () => {
+  state.count = Math.max(5, state.count - 5);
+  document.getElementById('countVal').textContent = state.count;
+});
+document.getElementById('incBtn').addEventListener('click', () => {
+  const avail = availableCount();
+  state.count = Math.min(avail, state.count + 5);
+  document.getElementById('countVal').textContent = state.count;
+});
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  const filtered = DATA.filter(q => state.selectedSections.has(q.section));
+  state.pool = shuffle(filtered).slice(0, state.count);
+  state.idx = 0;
+  state.correctCount = 0;
+  state.answers = [];
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('resultsScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  document.getElementById('statusLine').textContent = 'QUIZ IN PROGRESS';
+  showQuestion();
+});
+
+function showQuestion(){
+  const total = state.pool.length;
+  const q = state.pool[state.idx];
+  document.getElementById('qCounter').textContent = `Q${state.idx+1}/${total}`;
+  document.getElementById('scoreBadge').textContent = `${state.correctCount} correct`;
+  document.getElementById('progressFill').style.width = `${(state.idx/total)*100}%`;
+  document.getElementById('qMeta').textContent = q.section.toUpperCase() + ' · #' + q.qnum;
+  document.getElementById('qText').textContent = q.q + '?';
+
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  ['A','B','C'].forEach(letter => {
+    const btn = document.createElement('div');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="letter">${letter}</span><span>${q.options[letter]}</span>`;
+    btn.addEventListener('click', () => selectAnswer(letter, q));
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('nextBtn').className = 'next-btn';
+}
+
+function selectAnswer(letter, q){
+  const opts = document.querySelectorAll('#optionsWrap .option');
+  opts.forEach(o => o.classList.add('locked'));
+  const isCorrect = letter === q.correct;
+  opts.forEach((o, i) => {
+    const l = ['A','B','C'][i];
+    if(l === q.correct) o.classList.add('correct');
+    if(l === letter && !isCorrect) o.classList.add('wrong');
+    if(l !== letter && l !== q.correct) o.classList.add('dim');
+  });
+
+  if(isCorrect) state.correctCount++;
+  else state.missedForRetry.push(q);
+
+  state.answers.push({q, chosen: letter, correct: isCorrect});
+
+  const fb = document.getElementById('feedback');
+  fb.classList.add('show');
+  fb.classList.add(isCorrect ? 'right' : 'miss');
+  fb.textContent = isCorrect ? 'Correct.' : `Not quite — correct answer is ${q.correct}: ${q.options[q.correct]}.`;
+
+  document.getElementById('scoreBadge').textContent = `${state.correctCount} correct`;
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  state.idx++;
+  if(state.idx >= state.pool.length){
+    showResults();
+  } else {
+    showQuestion();
+  }
+});
+
+function showResults(){
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultsScreen').classList.remove('hidden');
+  document.getElementById('statusLine').textContent = 'QUIZ COMPLETE';
+
+  const total = state.answers.length;
+  const pct = Math.round((state.correctCount/total)*100);
+  document.getElementById('dialPct').textContent = pct + '%';
+  const circumference = 515;
+  const offset = circumference - (circumference * pct / 100);
+  const arc = document.getElementById('dialArc');
+  arc.style.stroke = pct >= 75 ? '#57b981' : (pct >= 50 ? '#f2a93b' : '#e2543b');
+  setTimeout(() => { arc.style.transition = 'stroke-dashoffset 1s ease'; arc.style.strokeDashoffset = offset; }, 50);
+
+  let verdict, sub;
+  if(pct >= 75){ verdict = 'Above pass standard'; sub = `${state.correctCount} of ${total} correct — a real CAT A paper typically needs ~75%.`; }
+  else if(pct >= 50){ verdict = 'Getting there'; sub = `${state.correctCount} of ${total} correct — some sections need another pass.`; }
+  else { verdict = 'More revision needed'; sub = `${state.correctCount} of ${total} correct — go back over the missed sections below.`; }
+  document.getElementById('verdict').textContent = verdict;
+  document.getElementById('verdictSub').textContent = sub;
+
+  // breakdown by section
+  const bySection = {};
+  state.answers.forEach(a => {
+    const s = a.q.section;
+    if(!bySection[s]) bySection[s] = {correct:0, total:0};
+    bySection[s].total++;
+    if(a.correct) bySection[s].correct++;
+  });
+  const bwrap = document.getElementById('breakdownWrap');
+  bwrap.innerHTML = '';
+  SECTION_ORDER.filter(s => bySection[s]).forEach(s => {
+    const d = bySection[s];
+    const p = Math.round((d.correct/d.total)*100);
+    const row = document.createElement('div');
+    row.className = 'bd-row';
+    row.innerHTML = `<span class="bd-name">${s}</span><div class="bd-track"><div class="bd-fill ${p===100?'perfect':''}" style="width:${p}%"></div></div><span class="bd-num">${d.correct}/${d.total}</span>`;
+    bwrap.appendChild(row);
+  });
+
+  // review missed
+  const rwrap = document.getElementById('reviewWrap');
+  rwrap.innerHTML = '';
+  const missed = state.answers.filter(a => !a.correct);
+  if(missed.length){
+    const label = document.createElement('span');
+    label.className = 'section-label';
+    label.style.marginTop = '22px';
+    label.style.display = 'block';
+    label.textContent = `Review — ${missed.length} missed`;
+    rwrap.appendChild(label);
+    missed.forEach(a => {
+      const item = document.createElement('div');
+      item.className = 'review-item';
+      item.innerHTML = `
+        <div class="review-tag">${a.q.section} · #${a.q.qnum}</div>
+        <div class="review-q">${a.q.q}?</div>
+        <div class="review-line wrong">✕ You chose ${a.chosen}: ${a.q.options[a.chosen]}</div>
+        <div class="review-line right">✓ Correct: ${a.q.correct}: ${a.q.options[a.q.correct]}</div>
+      `;
+      rwrap.appendChild(item);
+    });
+  }
+
+  document.getElementById('retrySameBtn').style.display = missed.length ? 'block' : 'none';
+}
+
+document.getElementById('retrySameBtn').addEventListener('click', () => {
+  state.pool = shuffle(state.missedForRetry);
+  state.missedForRetry = [];
+  state.idx = 0;
+  state.correctCount = 0;
+  state.answers = [];
+  document.getElementById('resultsScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  document.getElementById('statusLine').textContent = 'RETRY — MISSED QUESTIONS';
+  showQuestion();
+});
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  document.getElementById('resultsScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('statusLine').textContent = 'STANDBY — SELECT SECTIONS TO ARM QUIZ';
+});
+
+renderChips();
+</script>
+</body>
+</html>

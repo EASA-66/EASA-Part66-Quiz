@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EASA Part-66 Quiz — Free Practice Exams</title>
+<meta name="description" content="Free EASA Part-66 module practice quizzes for aircraft maintenance engineers.">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/ibm-plex/6.4.1/css/ibm-plex.min.css" rel="stylesheet" onerror="this.remove()">
+<style>
+:root{
+  --bg:#1b1e20;
+  --panel:#232629;
+  --panel-2:#2a2e31;
+  --line:#3a3f43;
+  --amber:#e8a33d;
+  --amber-dim:#a9762b;
+  --text:#e9e6df;
+  --text-dim:#9aa0a5;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; min-height:100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(232,163,61,0.05), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(232,163,61,0.04), transparent 45%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+}
+.wrap{ max-width:1080px; margin:0 auto; padding:28px 16px 60px; }
+
+/* ── header placard ─────────────────────────────── */
+.placard{
+  position:relative;
+  background:linear-gradient(180deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:30px 28px 26px;
+  margin-bottom:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  overflow:hidden;
+}
+.placard::after{
+  content:"";
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(115deg, transparent 0 46px, rgba(232,163,61,0.025) 46px 48px);
+  pointer-events:none;
+}
+.rivet{
+  position:absolute; width:7px; height:7px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #6b6f72, #232629 70%);
+  box-shadow:0 1px 1px rgba(0,0,0,0.6), inset 0 0 1px rgba(255,255,255,0.2);
+}
+.rivet.tl{top:9px;left:9px;} .rivet.tr{top:9px;right:9px;}
+.rivet.bl{bottom:9px;left:9px;} .rivet.br{bottom:9px;right:9px;}
+.eyebrow{
+  font-family:var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  font-size:11px; color:var(--amber); margin:0 0 8px;
+}
+h1{ font-size:26px; margin:0 0 6px; font-weight:600; letter-spacing:.01em; }
+.sub{ color:var(--text-dim); font-size:14px; margin:0; max-width:560px; line-height:1.5; }
+.stats{ display:flex; gap:26px; margin-top:20px; flex-wrap:wrap; }
+.stat .v{ font-family:var(--mono); font-size:20px; font-weight:700; color:var(--amber); }
+.stat .k{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+
+/* ── toolbar ────────────────────────────────────── */
+.toolbar{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin:22px 0 16px;
+}
+.search{
+  margin-left:auto;
+  background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  color:var(--text); padding:9px 14px; font-size:13.5px; font-family:var(--mono);
+  width:220px; outline:none;
+}
+.search:focus{ border-color:var(--amber-dim); }
+.search::placeholder{ color:var(--text-dim); }
+
+/* ── module grid ────────────────────────────────── */
+.grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px;
+}
+.mod{
+  display:flex; align-items:center; gap:16px;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; text-decoration:none; color:var(--text);
+  transition:all .15s; position:relative;
+}
+.mod:hover{ border-color:var(--amber); transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.35); }
+.mod .num{
+  font-family:var(--mono); font-size:24px; font-weight:700; color:var(--amber);
+  min-width:34px; opacity:.9;
+}
+.mod .info{ flex:1; min-width:0; }
+.mod .name{ font-size:15px; font-weight:600; }
+.mod .arrow{ color:var(--text-dim); font-family:var(--mono); transition:all .15s; }
+.mod:hover .arrow{ color:var(--amber); transform:translateX(3px); }
+.empty{ color:var(--text-dim); font-family:var(--mono); font-size:13px; padding:30px 0; text-align:center; grid-column:1/-1; }
+
+footer.note{
+  text-align:center; color:var(--text-dim); font-size:11.5px; margin-top:32px;
+  font-family:var(--mono); line-height:1.8;
+}
+@media (max-width:560px){
+  .search{ margin-left:0; width:100%; }
+  h1{ font-size:22px; }
+}
+</style>
+<base target="_blank">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="placard">
+    <span class="rivet tl"></span><span class="rivet tr"></span>
+    <span class="rivet bl"></span><span class="rivet br"></span>
+    <p class="eyebrow">Part-66 · Question Bank</p>
+    <h1>EASA Part-66 Practice Quizzes</h1>
+    <p class="sub">Free module-by-module practice for aircraft maintenance engineers. Pick a module and test yourself against exam-style questions.</p>
+    <div class="stats">
+      <div class="stat"><div class="v">12</div><div class="k">modules</div></div>
+      <div class="stat"><div class="v">FREE</div><div class="k">no signup</div></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search" id="search" type="text" placeholder="search modules…">
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer class="note">
+    practice questions for study purposes only — not a substitute for the official EASA Part-66 syllabus or examination<br>
+    built with a dark aviation theme · works on phone &amp; desktop · no data leaves your browser
+  </footer>
+</div>
+
+<script>
+// ── EDIT HERE: point each module at its quiz file ─────────────────
+// GitHub Pages URLs are CASE-SENSITIVE — file names below must match
+// your uploaded files exactly (including lowercase letters).
+const MODULES = [
+  { num:'01', name:'Mathematics',                                    file:'Module_01_Mathematics_Quiz.html' },
+  { num:'02', name:'Physics',                                        file:'Module_02_Physics_Quiz.html' },
+  { num:'03', name:'Electrical Fundamentals',                        file:'Module_03_Electrical_Fundamentals_Quiz.html' },
+  { num:'04', name:'Electronic Fundamentals',                        file:'Module_04_electronic_fundamentals_quiz.html' },
+  { num:'05', name:'Digital Techniques / Electronic Instrument Systems', file:'Module_05_digital_techniques_quiz.html' },
+  { num:'06', name:'Materials & Hardware',                           file:'Module_06_Materials_Hardware_Quiz.html' },
+  { num:'07', name:'Maintenance Practices',                          file:'Module_07_Maintenance_Practice_Quiz.html' },
+  { num:'08', name:'Basic Aerodynamics',                             file:'Module_08_Basic_Aerodynamics_Quiz.html' },
+  { num:'09', name:'Human Factors',                                  file:'Module_09_human_factors_quiz.html' },
+  { num:'10', name:'Aviation Legislation',                           file:'Module_10_Aviation_Legislation_Quiz.html' },
+  { num:'11', name:'Aeroplane Aerodynamics, Structures & Systems',   file:'Module_11_Aeroplane_Aerodynamics_Structures_Systems_Quiz.html' },
+  { num:'15', name:'Gas Turbine Engines',                            file:'Module_15_Gas_Turbine_Engine_Quiz.html' },
+  { num:'17', name:'Propeller',                                      file:'Module_17_Propeller_Quiz.html' },
+];
+
+const grid = document.getElementById('grid');
+let query = '';
+
+function render(){
+  grid.innerHTML = '';
+  const list = MODULES.filter(m => !query || m.name.toLowerCase().includes(query));
+  if(!list.length){
+    grid.innerHTML = '<div class="empty">no modules match your search</div>';
+    return;
+  }
+  list.forEach(m => {
+    const a = document.createElement('a');
+    a.className = 'mod';
+    a.href = m.file;
+    a.innerHTML = `
+      <span class="num">${m.num}</span>
+      <span class="info">
+        <span class="name">${m.name}</span>
+      </span>
+      <span class="arrow">&#8594;</span>`;
+    grid.appendChild(a);
+  });
+}
+
+document.getElementById('search').oninput = e => {
+  query = e.target.value.trim().toLowerCase();
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
